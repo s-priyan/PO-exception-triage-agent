@@ -29,7 +29,7 @@ def _load_model():
         # Imported lazily so the package stays importable without the heavy stack.
         from sentence_transformers import SentenceTransformer
 
-        _model = SentenceTransformer(HARRIER_MODEL_ID, model_kwargs={"dtype": "auto"})
+        _model = SentenceTransformer(HARRIER_MODEL_ID, model_kwargs={"dtype": "auto"}, device="cpu")
     return _model
 
 
