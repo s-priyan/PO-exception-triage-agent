@@ -114,3 +114,47 @@ def test_run_triage_raises_when_outputs_missing() -> None:
 
     with pytest.raises(RuntimeError):
         run_triage("PO-88405?", _EmptyGraph())
+
+
+def test_triage_maps_graph_failure_to_502_with_cors() -> None:
+    class _ExplodingGraph:
+        def invoke(self, state: dict) -> dict:
+            raise RuntimeError("boom")
+
+    client = TestClient(
+        create_app(graph=_ExplodingGraph(), prewarm_startup=False),
+        raise_server_exceptions=False,
+    )
+    response = client.post(
+        "/triage",
+        json={"question": "PO-88405?"},
+        headers={"Origin": "http://localhost:3000"},
+    )
+    assert response.status_code == 502
+    header_keys = {key.lower() for key in response.headers.keys()}
+    assert "access-control-allow-origin" in header_keys
+
+
+def test_run_triage_scrubs_pii_from_recommendation() -> None:
+    triage = TriageOutput(
+        po_id="PO-1",
+        halt=None,
+        planner_question="q",
+        po_record={},
+        forecast=None,
+        tier=None,
+        exception_types=[],
+        queries=[],
+    )
+    rec = Recommendation(
+        po_id="PO-1",
+        recommended_action="escalate",
+        rationale="Email a.b@example.com or call 07700 900142 now.",
+        citations=[],
+        confidence="low",
+        escalation_target_role="Manager j@x.co",
+    )
+    out = run_triage("q", _FakeGraph(triage, rec))
+    assert "a.b@example.com" not in out.recommendation.rationale
+    assert "07700 900142" not in out.recommendation.rationale
+    assert "@" not in (out.recommendation.escalation_target_role or "")

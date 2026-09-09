@@ -76,7 +76,12 @@ def create_app(graph: Optional[Any] = None, prewarm_startup: bool = True) -> Fas
             raise HTTPException(status_code=422, detail="question must not be empty")
         if app.state.graph is None:
             raise HTTPException(status_code=503, detail="triage graph is not ready")
-        return run_triage(question, app.state.graph)
+        try:
+            return run_triage(question, app.state.graph)
+        except HTTPException:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(status_code=502, detail="triage failed") from exc
 
     return app
 
