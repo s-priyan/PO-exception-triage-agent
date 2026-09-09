@@ -52,5 +52,17 @@ describe("Report", () => {
     expect(screen.getByText("Senior Merchandiser")).toBeInTheDocument();
     expect(screen.getByText(/MERCH-SOP-014 §2.1/)).toBeInTheDocument();
     expect(screen.getByText("Compound variance rule")).toBeInTheDocument();
+    expect(screen.getByText(/recommended action/i)).toBeInTheDocument();
+    expect(screen.getByText(/TIER 2 .* MATERIAL/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/V2 short-ship within amendment tolerance/),
+    ).toBeInTheDocument();
+    expect(screen.getByText("4,400")).toBeInTheDocument();
+    expect(screen.getByText(/Where a PO carries/)).toBeInTheDocument();
+    expect(screen.getByText("ETA slip")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /open po in erp/i }),
+    ).toBeDisabled();
+    expect(screen.queryByText("0.82")).not.toBeInTheDocument();
   });
 });
