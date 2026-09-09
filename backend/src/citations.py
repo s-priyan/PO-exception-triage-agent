@@ -65,7 +65,7 @@ def resolve_citation(citation: str) -> Citation:
     """Resolve one citation string into a structured, display-ready Citation."""
     match = _CITATION_RE.match(citation or "")
     if not match:
-        return Citation(code=(citation or "").strip(), section="")
+        return Citation(code=(citation or "").strip()[:80], section="")
 
     filename = match.group("file")
     section = match.group("sec") or ""

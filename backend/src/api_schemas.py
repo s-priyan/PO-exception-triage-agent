@@ -2,18 +2,20 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel
 
-from .schemas import Recommendation, TriageOutput
+from .schemas import HaltReason, Recommendation, TriageOutput
+
+TierWord = Literal["Clean", "Minor", "Material", "Major", "Critical"]
 
 
 class TierDisplay(BaseModel):
     """Human-facing tier label derived from the V0-V4 code."""
 
     number: int
-    word: str
+    word: TierWord
 
 
 class FlaggedPo(BaseModel):
@@ -58,4 +60,4 @@ class TriageResponse(BaseModel):
     triage: TriageOutput
     recommendation: Recommendation
     citations: List[Citation]
-    halt: Optional[str] = None
+    halt: Optional[HaltReason] = None
