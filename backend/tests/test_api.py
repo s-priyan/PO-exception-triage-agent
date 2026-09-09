@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
+from langchain_core.messages import HumanMessage
 
 from src.api import create_app
+from src.schemas import Recommendation, TriageOutput
+from src.service import run_triage
 
 
 def _client() -> TestClient:
@@ -21,11 +25,6 @@ def test_injected_graph_is_stored() -> None:
     sentinel = object()
     app = create_app(graph=sentinel, prewarm_startup=False)
     assert app.state.graph is sentinel
-
-
-from langchain_core.messages import HumanMessage
-
-from src.schemas import Recommendation, TriageOutput
 
 
 class _FakeGraph:
@@ -81,6 +80,8 @@ def test_triage_returns_enriched_citations() -> None:
     assert body["halt"] is None
     assert body["citations"][0]["code"] == "MERCH-SOP-014"
     assert body["citations"][0]["title"] == "Compound variance rule"
+    assert body["citations"][0]["section"] == "\u00a72.1"
+    assert body["citations"][0]["quote"] is not None
 
 
 def test_triage_rejects_empty_question() -> None:
@@ -98,3 +99,18 @@ def test_triage_passes_question_into_graph() -> None:
     sent = graph.last_state["messages"][0]
     assert isinstance(sent, HumanMessage)
     assert sent.content == "hello PO-88405"
+
+
+def test_triage_returns_503_when_no_graph() -> None:
+    client = TestClient(create_app(graph=None, prewarm_startup=False))
+    response = client.post("/triage", json={"question": "PO-88405?"})
+    assert response.status_code == 503
+
+
+def test_run_triage_raises_when_outputs_missing() -> None:
+    class _EmptyGraph:
+        def invoke(self, state: dict) -> dict:
+            return {"final_output": None, "recommendation": None}
+
+    with pytest.raises(RuntimeError):
+        run_triage("PO-88405?", _EmptyGraph())
