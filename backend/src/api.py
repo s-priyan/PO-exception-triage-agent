@@ -12,11 +12,12 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any, Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api_schemas import FlaggedPosResponse
+from .api_schemas import FlaggedPosResponse, TriageRequest, TriageResponse
 from .flagged import build_flagged_pos
+from .service import run_triage
 
 
 def _frontend_origins() -> list[str]:
@@ -66,6 +67,16 @@ def create_app(graph: Optional[Any] = None, prewarm_startup: bool = True) -> Fas
         """Return the deterministically tiered flagged-PO list (no LLM)."""
         items = build_flagged_pos()
         return FlaggedPosResponse(count=len(items), items=items)
+
+    @app.post("/triage", response_model=TriageResponse)
+    def triage(request: TriageRequest) -> TriageResponse:
+        """Run the live agent for one planner question."""
+        question = request.question.strip()
+        if not question:
+            raise HTTPException(status_code=422, detail="question must not be empty")
+        if app.state.graph is None:
+            raise HTTPException(status_code=503, detail="triage graph is not ready")
+        return run_triage(question, app.state.graph)
 
     return app
 
