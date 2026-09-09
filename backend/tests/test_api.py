@@ -15,3 +15,9 @@ def test_health_ok() -> None:
     response = _client().get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_injected_graph_is_stored() -> None:
+    sentinel = object()
+    app = create_app(graph=sentinel, prewarm_startup=False)
+    assert app.state.graph is sentinel

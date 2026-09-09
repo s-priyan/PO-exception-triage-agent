@@ -8,6 +8,7 @@ app and its lighter routes stay importable and testable without loading Harrier.
 from __future__ import annotations
 
 import os
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any, Optional
 
@@ -32,7 +33,7 @@ def create_app(graph: Optional[Any] = None, prewarm_startup: bool = True) -> Fas
     """
 
     @asynccontextmanager
-    async def lifespan(app: FastAPI):
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if app.state.graph is None and prewarm_startup:
             # Imported here so importing this module stays light for tests.
             from .graph import build_triage_graph
