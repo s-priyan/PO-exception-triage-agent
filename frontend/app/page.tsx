@@ -1,11 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getFlaggedPos, postTriage } from "@/lib/api";
 import { FlaggedPo, TriageResponse } from "@/lib/types";
 import { FlaggedPoList } from "@/components/FlaggedPoList";
 import { QuestionBar } from "@/components/QuestionBar";
 import { ReportPanel, ReportPhase } from "@/components/ReportPanel";
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Something went wrong.";
+}
 
 export default function Page() {
   const [items, setItems] = useState<FlaggedPo[]>([]);
@@ -15,13 +19,26 @@ export default function Page() {
   const [result, setResult] = useState<TriageResponse | undefined>(undefined);
   const [error, setError] = useState<string | undefined>(undefined);
 
-  useEffect(() => {
+  // Monotonic id so only the latest user action is allowed to commit state;
+  // triage is slow, so a stale response must not overwrite a newer selection.
+  const requestId = useRef(0);
+
+  const loadPos = useCallback(() => {
+    requestId.current += 1;
     getFlaggedPos()
       .then((response) => setItems(response.items))
-      .catch((err: Error) => setError(err.message));
+      .catch((err: unknown) => {
+        setError(errorMessage(err));
+        setPhase("error");
+      });
   }, []);
 
+  useEffect(() => {
+    loadPos();
+  }, [loadPos]);
+
   const onSelect = useCallback((po: FlaggedPo) => {
+    requestId.current += 1; // invalidate any in-flight triage
     setSelected(po);
     setQuestion(po.query);
     setResult(undefined);
@@ -30,17 +47,30 @@ export default function Page() {
   }, []);
 
   const onAsk = useCallback(async () => {
+    const id = (requestId.current += 1);
     setPhase("loading");
     setError(undefined);
     try {
       const response = await postTriage(question);
+      if (id !== requestId.current) return; // superseded by a newer action
       setResult(response);
       setPhase("done");
     } catch (err) {
-      setError((err as Error).message);
+      if (id !== requestId.current) return;
+      setError(errorMessage(err));
       setPhase("error");
     }
   }, [question]);
+
+  const onRetry = useCallback(() => {
+    if (items.length === 0) {
+      setError(undefined);
+      setPhase("empty");
+      loadPos();
+    } else {
+      onAsk();
+    }
+  }, [items.length, loadPos, onAsk]);
 
   return (
     <main className="flex h-screen">
@@ -62,7 +92,7 @@ export default function Page() {
             result={result}
             error={error}
             selectedPoId={selected?.po_id ?? null}
-            onRetry={onAsk}
+            onRetry={onRetry}
           />
         </div>
       </section>

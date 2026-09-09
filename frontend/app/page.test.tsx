@@ -65,5 +65,28 @@ describe("Page", () => {
     await waitFor(() =>
       expect(screen.getByText("Amend the purchase order")).toBeInTheDocument(),
     );
+    expect(api.postTriage).toHaveBeenCalledWith(po.query);
+  });
+
+  it("ignores a superseded triage response after switching POs", async () => {
+    const poB: FlaggedPo = { ...po, po_id: "PO-88408", query: "PO-88408 question" };
+    vi.spyOn(api, "getFlaggedPos").mockResolvedValue({ count: 2, items: [po, poB] });
+    let resolveA: (value: TriageResponse) => void = () => {};
+    vi.spyOn(api, "postTriage").mockImplementation(
+      () => new Promise<TriageResponse>((resolve) => { resolveA = resolve; }),
+    );
+
+    render(<Page />);
+    await waitFor(() => expect(screen.getByText("PO-88405")).toBeInTheDocument());
+    await userEvent.click(screen.getByText("PO-88405"));
+    await userEvent.click(screen.getByRole("button", { name: /ask/i }));
+    await userEvent.click(screen.getByText("PO-88408"));
+
+    resolveA(triage);
+
+    await waitFor(() =>
+      expect(screen.getByText(/ask a question/i)).toBeInTheDocument(),
+    );
+    expect(screen.queryByText("Amend the purchase order")).not.toBeInTheDocument();
   });
 });
