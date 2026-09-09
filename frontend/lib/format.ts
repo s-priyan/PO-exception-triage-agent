@@ -22,10 +22,14 @@ export const EXCEPTION_LABELS: Record<ExceptionType, string> = {
   parent_child_context: "Parent/child",
 };
 
+const CONFIDENCE_FILL: Record<Confidence, number> = {
+  high: 100,
+  medium: 66,
+  low: 33,
+};
+
 export function confidenceFill(confidence: Confidence): number {
-  if (confidence === "high") return 100;
-  if (confidence === "medium") return 66;
-  return 33;
+  return CONFIDENCE_FILL[confidence];
 }
 
 export function formatPct(value: number | null): string {
