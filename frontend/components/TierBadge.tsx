@@ -1,3 +1,4 @@
+import { TierWord } from "@/lib/types";
 import { Badge } from "./ui/Badge";
 
 const TIER_CLASSES: Record<number, string> = {
@@ -14,7 +15,7 @@ export function TierBadge({
   withWord = false,
 }: {
   number: number;
-  word: string;
+  word: TierWord;
   withWord?: boolean;
 }) {
   const label = withWord ? `TIER ${number} · ${word.toUpperCase()}` : `TIER ${number}`;
