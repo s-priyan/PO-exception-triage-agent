@@ -35,10 +35,10 @@ export function EdgeStatePanel({ result }: { result: TriageResponse }) {
         )}
 
         <div className="flex gap-10 rounded-lg border border-slate-800 bg-slate-900/40 px-5 py-4">
-          <Fact label="Ordered" value={formatQty(triage.po_record?.ordered_qty as number)} />
+          <Fact label="Ordered" value={formatQty((triage.po_record?.ordered_qty as number | undefined) ?? null)} />
           <Fact
             label="Confirmed"
-            value={formatQty(triage.po_record?.confirmed_qty as number)}
+            value={formatQty((triage.po_record?.confirmed_qty as number | undefined) ?? null)}
           />
           <Fact label="Variance" value={formatPct(triage.tier?.qty_variance_pct ?? null)} />
           <Fact label="ETA" value={formatEtaDays(triage.tier?.eta_variance_days ?? null)} />
