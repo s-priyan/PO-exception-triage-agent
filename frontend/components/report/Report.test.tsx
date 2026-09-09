@@ -47,6 +47,7 @@ describe("Report", () => {
     expect(screen.getByText("5,000")).toBeInTheDocument();
     expect(screen.getByText("-12.0%")).toBeInTheDocument();
     expect(screen.getByText("+9d")).toBeInTheDocument();
+    expect(screen.getByText("£22,800")).toBeInTheDocument();
     expect(screen.getByText("Short-ship")).toBeInTheDocument();
     expect(screen.getByText(/high/i)).toBeInTheDocument();
     expect(screen.getByText("Senior Merchandiser")).toBeInTheDocument();

@@ -10,7 +10,8 @@ import { ActionButtons } from "./ActionButtons";
 
 export function Report({ result }: { result: TriageResponse }) {
   const { triage, recommendation, citations } = result;
-  const summary = `${triage.po_id}: ${actionHeadline(
+  const poPrefix = triage.po_id ? `${triage.po_id}: ` : "";
+  const summary = `${poPrefix}${actionHeadline(
     recommendation.recommended_action,
   )} — ${recommendation.rationale}`;
 

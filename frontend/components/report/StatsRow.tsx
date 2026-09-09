@@ -1,5 +1,5 @@
 import { TierResult } from "@/lib/types";
-import { formatEtaDays, formatPct, formatQty } from "@/lib/format";
+import { formatEtaDays, formatGbp, formatPct, formatQty } from "@/lib/format";
 
 function Stat({ label, value, danger }: { label: string; value: string; danger?: boolean }) {
   return (
@@ -27,6 +27,9 @@ export function StatsRow({
       <Stat label="Confirmed" value={formatQty(confirmed)} />
       <Stat label="Variance" value={formatPct(tier?.qty_variance_pct ?? null)} danger />
       <Stat label="ETA" value={formatEtaDays(tier?.eta_variance_days ?? null)} />
+      {tier?.value_at_risk_gbp != null && (
+        <Stat label="Value at risk" value={formatGbp(tier.value_at_risk_gbp)} />
+      )}
     </div>
   );
 }

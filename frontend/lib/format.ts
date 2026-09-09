@@ -48,3 +48,12 @@ export function formatQty(value: number | null | undefined): string {
   if (value == null) return "—";
   return value.toLocaleString("en-GB");
 }
+
+export function formatGbp(value: number | null | undefined): string {
+  if (value == null) return "—";
+  return value.toLocaleString("en-GB", {
+    style: "currency",
+    currency: "GBP",
+    maximumFractionDigits: 0,
+  });
+}

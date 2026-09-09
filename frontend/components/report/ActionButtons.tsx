@@ -5,7 +5,9 @@ export function ActionButtons({ summary }: { summary: string }) {
     <div className="flex flex-col gap-2">
       <button
         type="button"
-        onClick={() => navigator.clipboard?.writeText(summary)}
+        onClick={() => {
+          void navigator.clipboard?.writeText(summary).catch(() => {});
+        }}
         className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800"
       >
         Copy summary
