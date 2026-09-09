@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException
@@ -18,6 +19,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from .api_schemas import FlaggedPosResponse, TriageRequest, TriageResponse
 from .flagged import build_flagged_pos
 from .service import run_triage
+
+_BACKEND_DIR = Path(__file__).resolve().parents[1]
 
 
 def _frontend_origins() -> list[str]:
@@ -40,9 +43,15 @@ def create_app(graph: Optional[Any] = None, prewarm_startup: bool = True) -> Fas
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if app.state.graph is None and prewarm_startup:
             # Imported here so importing this module stays light for tests.
+            from dotenv import load_dotenv
+
             from .graph import build_triage_graph
             from .retrieval import prewarm
 
+            # Load OPENAI_API_KEY etc. from backend/.env before building the graph,
+            # which constructs ChatOpenAI and needs the key at startup (the CLI
+            # entrypoint loads it the same way).
+            load_dotenv(_BACKEND_DIR / ".env")
             prewarm()
             app.state.graph = build_triage_graph()
         yield
