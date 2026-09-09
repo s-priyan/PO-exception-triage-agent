@@ -15,6 +15,9 @@ from typing import Any, Optional
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api_schemas import FlaggedPosResponse
+from .flagged import build_flagged_pos
+
 
 def _frontend_origins() -> list[str]:
     """Return the allowed CORS origins from env, defaulting to the Next dev host."""
@@ -57,6 +60,12 @@ def create_app(graph: Optional[Any] = None, prewarm_startup: bool = True) -> Fas
     def health() -> dict[str, str]:
         """Liveness probe."""
         return {"status": "ok"}
+
+    @app.get("/flagged-pos", response_model=FlaggedPosResponse)
+    def flagged_pos() -> FlaggedPosResponse:
+        """Return the deterministically tiered flagged-PO list (no LLM)."""
+        items = build_flagged_pos()
+        return FlaggedPosResponse(count=len(items), items=items)
 
     return app
 
