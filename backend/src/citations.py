@@ -17,7 +17,7 @@ from .api_schemas import Citation
 FILES_DIR = Path(__file__).resolve().parents[1] / "files"
 _QUOTE_CAP = 500
 
-_CITATION_RE = re.compile(r"^\s*(?P<file>[\w\-.]+\.md)\s*(?:§\s*(?P<sec>[\d.]+))?")
+_CITATION_RE = re.compile(r"^\s*(?P<file>[\w\-.]+\.md)\s*(?:§\s*(?P<sec>[\d.]+))?\s*$")
 _DOC_ID_RE = re.compile(r"\*\*Document ID:\*\*\s*(?P<code>[A-Za-z0-9\-]+)")
 _HEADING_RE = re.compile(r"^#{1,6}\s+(?P<num>\d+(?:\.\d+)*)\.?\s+(?P<title>.+?)\s*$")
 _ANY_HEADING_RE = re.compile(r"^#{1,6}\s+")
@@ -33,22 +33,32 @@ def _cap(text: str) -> str:
 def _first_prose_quote(lines: List[str], start: int) -> Optional[str]:
     """Return the first prose paragraph after ``start`` until the next heading.
 
-    Table rows (``|``) and code fences (```` ``` ````) are skipped so structured
-    blocks — including the PII tables in the escalation matrix — are never quoted.
+    Line-wise by design so structured content can never leak: fenced code
+    regions are skipped entirely and any table row is dropped. Only prose lines
+    form the quote, keeping the PII tables in the escalation matrix out of every
+    output regardless of blank-line formatting.
     """
-    body: List[str] = []
+    prose: List[str] = []
+    in_fence = False
     for line in lines[start:]:
         if _ANY_HEADING_RE.match(line):
             break
-        body.append(line)
-
-    paragraphs = [p.strip() for p in re.split(r"\n\s*\n", "\n".join(body)) if p.strip()]
-    for paragraph in paragraphs:
-        first = paragraph.splitlines()[0].strip()
-        if first.startswith("|") or first.startswith("```"):
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
             continue
-        return _cap(" ".join(paragraph.split()))
-    return None
+        if in_fence:
+            continue
+        if not stripped:
+            if prose:
+                break  # end of the first prose paragraph
+            continue
+        if stripped.startswith("|"):
+            continue  # never include table rows
+        prose.append(stripped)
+    if not prose:
+        return None
+    return _cap(" ".join(prose))
 
 
 def resolve_citation(citation: str) -> Citation:

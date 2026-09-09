@@ -41,3 +41,31 @@ def test_missing_file_degrades_gracefully() -> None:
     assert result.code == "nonexistent"
     assert result.title is None
     assert result.quote is None
+
+
+def test_quote_excludes_code_fences() -> None:
+    result = resolve_citation("variance_detection_sop.md §1.1")
+    assert result.title == "Quantity variance"
+    assert result.quote is not None
+    assert "```" not in result.quote
+    assert "qty_variance_pct" not in result.quote
+    assert result.quote.startswith("Measured on absolute value")
+
+
+def test_prose_quote_drops_inline_table_rows() -> None:
+    from src.citations import _first_prose_quote
+
+    lines = [
+        "## X",
+        "",
+        "Real prose sentence.",
+        "| secret | pii@example.com |",
+        "More prose.",
+        "",
+        "## Y",
+    ]
+    quote = _first_prose_quote(lines, 1)
+    assert quote is not None
+    assert "|" not in quote
+    assert "pii@example.com" not in quote
+    assert "Real prose sentence." in quote
