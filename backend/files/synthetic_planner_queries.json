@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "generated": "2026-09-09",
+    "season": "AW26",
+    "source_data": "purchase_orders.json",
+    "query_count": 15,
+    "notes": "Synthetic natural-language planner queries for the PO exception triage agent. Each is grounded in a real record in purchase_orders.json and phrased in a merchandiser's voice (describing symptoms, not system jargon like tiers). po_id and edge_case are traceability metadata only; the agent resolves the PO and computes the tier itself. The set deliberately spans the SOP edge cases: clean receipt, minor/severe shortfalls, over-delivery, minor/major ETA slips, season-boundary breach, wholesale contracted delivery, mixed-channel part receipt, parent/child split, terminal status, and two data-quality failures."
+  },
+  "queries": [
+    {
+      "id": "Q-02",
+      "po_id": "PO-88403",
+      "edge_case": "minor quantity shortfall within tolerance",
+      "query": "Quick one on PO-88403 - we ordered 3,000 and the supplier's only confirmed 2,900. Is a 100-unit gap worth chasing or is that within tolerance?"
+    },
+    {
+      "id": "Q-03",
+      "po_id": "PO-88404",
+      "edge_case": "minor ETA slip within tolerance",
+      "query": "PO-88404 has slipped from the 19th to the 24th of September. It's only a few days - do I need to do anything or can I let it ride?"
+    },
+    {
+      "id": "Q-04",
+      "po_id": "PO-88405",
+      "edge_case": "quantity shortfall + ETA slip (compound variance)",
+      "query": "PO-88405 has come in short of what we ordered and the ETA's slipped as well. What's going on and what should I do about it?"
+    },
+    {
+      "id": "Q-05",
+      "po_id": "PO-88406",
+      "edge_case": "shortfall on a cold, over-covered SKU - balance recovery may not be justified",
+      "query": "PO-88406 is confirming nearly 400 units under, but demand on this style has been cold and we're already over-covered. Is it worth recovering the balance or should I just let it go?"
+    },
+    {
+      "id": "Q-06",
+      "po_id": "PO-88407",
+      "edge_case": "part-received, mixed retail/wholesale, high-demand SKU with a size-level shortfall",
+      "query": "Part of PO-88407 has landed and it's coming up short - and this one's trading way ahead of plan, mostly in the mid sizes. There's a wholesale portion in there too. How do I prioritise the balance?"
+    },
+    {
+      "id": "Q-07",
+      "po_id": "PO-88408",
+      "edge_case": "wholesale shortfall against a contracted delivery",
+      "query": "PO-88408 is a wholesale order and it's landed 132 units under against a contracted delivery date. What are our obligations here, and who do I need to escalate to?"
+    },
+    {
+      "id": "Q-08",
+      "po_id": "PO-88409",
+      "edge_case": "severe shortfall + major ETA slip (high severity, planner discretion removed)",
+      "query": "PO-88409 is a bad one - barely half of the 8,000 units confirmed and the ETA's moved out by more than a month. Demand's soft so I'm not too worried commercially, but what does policy actually require me to do?"
+    },
+    {
+      "id": "Q-09",
+      "po_id": "PO-88410",
+      "edge_case": "revised ETA falls outside the season window",
+      "query": "The revised ETA on PO-88410 has drifted into the new year, so it'd arrive after AW26 has closed. The demand's there but the timing's wrong - how do I handle stock that lands out of season?"
+    },
+    {
+      "id": "Q-10",
+      "po_id": "PO-88411",
+      "edge_case": "over-delivery not supported by demand",
+      "query": "PO-88411 has actually come in over - 1,320 against the 1,200 we ordered - and we're already at cover on it. Can I just take the extra or does over-delivery need sign-off?"
+    },
+    {
+      "id": "Q-11",
+      "po_id": "PO-88412",
+      "edge_case": "parent/child PO split - assessing the family together",
+      "query": "PO-88412 has been split into two child orders with different ETAs. How should I be reading the overall position - do I look at the parent, the children, or both together?"
+    },
+    {
+      "id": "Q-12",
+      "po_id": "PO-88413",
+      "edge_case": "data-quality: parent_po_id references a non-existent PO",
+      "query": "I'm looking at PO-88413 and it's linked to a parent order, PO-88399, that I can't find anywhere in the system. Can you make sense of what's happening with it?"
+    },
+    {
+      "id": "Q-13",
+      "po_id": "PO-88414",
+      "edge_case": "shortfall balance below the minimum child-PO size",
+      "query": "PO-88414 is about 120 units short and the ETA's pushed out a few weeks. Can we raise a follow-on order for the shortfall, or is 120 units too small to be worth it?"
+    },
+    {
+      "id": "Q-15",
+      "po_id": "PO-88416",
+      "edge_case": "data-quality: confirmed PO with a missing ETA",
+      "query": "PO-88416 is marked confirmed but there's no ETA on it at all, so I can't work out cover. What do I do with an order that's got no delivery date?"
+    }
+  ]
+}
